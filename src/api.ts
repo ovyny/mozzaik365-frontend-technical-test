@@ -14,6 +14,9 @@ export class NotFoundError extends Error {
 
 function checkStatus(response: Response) {
   if (response.status === 401) {
+    // Token might have expired, trigger a signout
+    const event = new CustomEvent('auth:signout');
+    window.dispatchEvent(event);
     throw new UnauthorizedError();
   }
   if (response.status === 404) {
