@@ -31,7 +31,7 @@ const memes = [
     ],
     createdAt: "2021-09-01T12:00:00Z",
   },
-]
+];
 
 const comments = [
   {
@@ -55,9 +55,10 @@ const comments = [
     content: "dummy comment 3",
     createdAt: "2021-09-01T12:00:00Z",
   },
-]
+];
 
 export const handlers = [
+  // Authentication handler
   http.post<{}, { username: string; password: string }>(
     "https://fetestapi.int.mozzaik365.net/api/authentication/login",
     async ({ request }) => {
@@ -77,6 +78,8 @@ export const handlers = [
       });
     },
   ),
+
+  // Handler for getting a user by ID
   http.get<{ id: string }>(
     "https://fetestapi.int.mozzaik365.net/api/users/:id",
     async ({ params }) => {
@@ -89,13 +92,33 @@ export const handlers = [
       });
     },
   ),
-  http.get("https://fetestapi.int.mozzaik365.net/api/memes", async () => {
-    return HttpResponse.json({
-      total: memes.length,
-      pageSize: memes.length,
-      results: memes,
-    });
-  }),
+
+  // Handler for getting multiple users by IDs
+  http.get(
+    "https://fetestapi.int.mozzaik365.net/api/users",
+    async ({ request }) => {
+      const url = new URL(request.url);
+      const ids = url.searchParams.getAll('ids');
+      const results = ids
+        .map(id => users[id as keyof typeof users])
+        .filter(Boolean);
+      return HttpResponse.json(results);
+    },
+  ),
+
+  // Handler for getting memes
+  http.get(
+    "https://fetestapi.int.mozzaik365.net/api/memes",
+    async () => {
+      return HttpResponse.json({
+        total: memes.length,
+        pageSize: memes.length,
+        results: memes,
+      });
+    },
+  ),
+
+  // Handler for getting comments for a meme
   http.get<{ id: string }>(
     "https://fetestapi.int.mozzaik365.net/api/memes/:id/comments",
     async ({ params }) => {
@@ -107,6 +130,23 @@ export const handlers = [
         pageSize: memeComments.length,
         results: memeComments,
       });
+    },
+  ),
+
+  // Handler for creating a comment for a meme
+  http.post<{ id: string }, { content: string }>(
+    "https://fetestapi.int.mozzaik365.net/api/memes/:id/comments",
+    async ({ params, request }) => {
+      const { content } = await request.json();
+      const newComment = {
+        id: `new_comment_${Date.now()}`,
+        memeId: params.id,
+        authorId: "dummy_user_id_1",
+        content,
+        createdAt: new Date().toISOString(),
+      };
+      comments.push(newComment);
+      return HttpResponse.json(newComment);
     },
   ),
 ];
