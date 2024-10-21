@@ -278,3 +278,21 @@ export type Comment = {
   content: string;
   createdAt: string;
 };
+
+/**
+ * Create a new meme
+ * @param token
+ * @param memeData
+ */
+export async function createMeme(
+  token: string,
+  memeData: FormData
+): Promise<void> {
+  await fetch(`${BASE_URL}/memes`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: memeData,
+  }).then((res) => checkStatus(res));
+}
