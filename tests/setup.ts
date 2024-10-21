@@ -6,7 +6,11 @@ import { handlers } from './mocks/handlers';
 
 const server = setupServer(...handlers);
 
-beforeAll(() => server.listen());
+beforeAll(() => {
+  server.listen({
+    onUnhandledRequest: 'error', // This will throw an error for unhandled requests
+  });
+});
 afterEach(() => {
   server.resetHandlers();
   cleanup();
