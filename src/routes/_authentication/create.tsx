@@ -60,6 +60,14 @@ function CreateMemePage() {
     setTexts(texts.filter((_, i) => i !== index));
   };
 
+  const handleCaptionMove = (index: number, x: number, y: number) => {
+    setTexts((prevTexts) => {
+      const newTexts = [...prevTexts];
+      newTexts[index] = { ...newTexts[index], x, y };
+      return newTexts;
+    });
+  };
+
   const memePicture = useMemo(() => {
     if (!picture) {
       return undefined;
@@ -119,7 +127,11 @@ function CreateMemePage() {
             <Heading as="h2" size="md" mb={2}>
               Upload your picture
             </Heading>
-            <MemeEditor onDrop={handleDrop} memePicture={memePicture} />
+            <MemeEditor
+              onDrop={handleDrop}
+              memePicture={memePicture}
+              onCaptionMove={handleCaptionMove}
+            />
           </Box>
           <Box>
             <Heading as="h2" size="md" mb={2}>

@@ -6,6 +6,7 @@ import { Image, Pencil } from "@phosphor-icons/react";
 export type MemeEditorProps = {
   onDrop: (file: File) => void;
   memePicture?: MemePictureProps;
+  onCaptionMove: (index: number, x: number, y: number) => void;
 };
 
 function renderNoPicture() {
@@ -26,17 +27,30 @@ function renderNoPicture() {
   );
 }
 
-function renderMemePicture(memePicture: MemePictureProps, open: () => void) {
+function renderMemePicture(
+  memePicture: MemePictureProps,
+  open: () => void,
+  onCaptionMove: (index: number, x: number, y: number) => void
+) {
   return (
-    <Box width="full" height="full" position="relative" __css={{
-      "&:hover .change-picture-button": {
-        display: "inline-block",
-      },
-      "& .change-picture-button": {
-        display: "none",
-      },
-    }}>
-      <MemePicture {...memePicture} />
+    <Box
+      width="full"
+      height="full"
+      position="relative"
+      __css={{
+        "&:hover .change-picture-button": {
+          display: "inline-block",
+        },
+        "& .change-picture-button": {
+          display: "none",
+        },
+      }}
+    >
+      <MemePicture
+        {...memePicture}
+        onCaptionMove={onCaptionMove}
+        editable={true}
+      />
       <Button
         className="change-picture-button"
         leftIcon={<Icon as={Pencil} boxSize={4} />}
@@ -57,6 +71,7 @@ function renderMemePicture(memePicture: MemePictureProps, open: () => void) {
 export const MemeEditor: React.FC<MemeEditorProps> = ({
   onDrop,
   memePicture,
+  onCaptionMove,
 }) => {
   const { getRootProps, getInputProps, open } = useDropzone({
     onDrop: (files: File[]) => {
@@ -81,7 +96,9 @@ export const MemeEditor: React.FC<MemeEditorProps> = ({
         px={1}
       >
         <input {...getInputProps()} />
-        {memePicture ? renderMemePicture(memePicture, open) : renderNoPicture()}
+        {memePicture
+          ? renderMemePicture(memePicture, open, onCaptionMove)
+          : renderNoPicture()}
       </Box>
     </AspectRatio>
   );

@@ -1,5 +1,6 @@
 import { Box, Text, useDimensions } from "@chakra-ui/react";
 import { useMemo, useRef } from "react";
+import Draggable from "react-draggable";
 
 export type MemePictureProps = {
   pictureUrl: string;
@@ -9,6 +10,8 @@ export type MemePictureProps = {
     y: number;
   }[];
   dataTestId?: string;
+  onCaptionMove?: (index: number, x: number, y: number) => void;
+  editable?: boolean;
 };
 
 const REF_WIDTH = 800;
@@ -18,7 +21,9 @@ const REF_FONT_SIZE = 36;
 export const MemePicture: React.FC<MemePictureProps> = ({
   pictureUrl,
   texts: rawTexts,
-  dataTestId = '',
+  dataTestId = "",
+  onCaptionMove,
+  editable = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const dimensions = useDimensions(containerRef, true);
@@ -40,6 +45,17 @@ export const MemePicture: React.FC<MemePictureProps> = ({
     };
   }, [boxWidth, rawTexts]);
 
+  const handleDrag = (
+    index: number,
+    e: any,
+    data: { x: number; y: number }
+  ) => {
+    if (onCaptionMove) {
+      const scaleFactor = REF_WIDTH / (boxWidth || 1);
+      onCaptionMove(index, data.x * scaleFactor, data.y * scaleFactor);
+    }
+  };
+
   return (
     <Box
       width="full"
@@ -56,22 +72,29 @@ export const MemePicture: React.FC<MemePictureProps> = ({
       data-testid={dataTestId}
     >
       {texts.map((text, index) => (
-        <Text
+        <Draggable
           key={index}
-          position="absolute"
-          left={text.x}
-          top={text.y}
-          fontSize={fontSize}
-          color="white"
-          fontFamily="Impact"
-          fontWeight="bold"
-          userSelect="none"
-          textTransform="uppercase"
-          style={{ WebkitTextStroke: "1px black" }}
-          data-testid={`${dataTestId}-text-${index}`}
+          position={{ x: text.x, y: text.y }}
+          onStop={(e, data) => handleDrag(index, e, data)}
+          disabled={!editable}
         >
-          {text.content}
-        </Text>
+          <Text
+            position="absolute"
+            fontSize={fontSize}
+            color="white"
+            fontFamily="Impact"
+            fontWeight="bold"
+            userSelect="none"
+            textTransform="uppercase"
+            style={{
+              WebkitTextStroke: "1px black",
+              cursor: editable ? "move" : "default",
+            }}
+            data-testid={`${dataTestId}-text-${index}`}
+          >
+            {text.content}
+          </Text>
+        </Draggable>
       ))}
     </Box>
   );
