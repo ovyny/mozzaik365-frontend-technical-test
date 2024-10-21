@@ -18,7 +18,7 @@ import { Plus, Trash } from "@phosphor-icons/react";
 import { useAuthToken } from "../../contexts/authentication";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createMeme } from "../../api";
+import { createMeme, GetMemesWithDetailsResponse } from "../../api";
 
 export const Route = createFileRoute("/_authentication/create")({
   component: CreateMemePage,
@@ -80,22 +80,30 @@ function CreateMemePage() {
       const formData = new FormData();
       formData.append("Picture", picture.file);
       formData.append("Description", description);
-      formData.append(
-        "Texts",
-        JSON.stringify(
-          texts.map((text) => ({
-            content: text.content,
-            x: Math.round(text.x),
-            y: Math.round(text.y),
-          }))
-        )
-      );
 
-      await createMeme(token, formData);
+      texts.forEach((text, index) => {
+        formData.append(`Texts[${index}][Content]`, text.content);
+        formData.append(`Texts[${index}][X]`, Math.round(text.x).toString());
+        formData.append(`Texts[${index}][Y]`, Math.round(text.y).toString());
+      });
+
+      const createdMeme = await createMeme(token, formData);
+      return createdMeme;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["memes"] });
-      navigate({ to: "/" }); // Redirect to the homepage
+    onSuccess: (createdMeme) => {
+      queryClient.setQueryData(
+        ["memes"],
+        (oldData: GetMemesWithDetailsResponse | undefined) => {
+          if (oldData) {
+            return {
+              ...oldData,
+              results: [createdMeme, ...oldData.results],
+            };
+          }
+          return oldData;
+        }
+      );
+      navigate({ to: "/" });
     },
     onError: (error) => {
       console.error("Error creating meme:", error);

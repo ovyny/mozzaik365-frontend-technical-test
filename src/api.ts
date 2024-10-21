@@ -287,12 +287,15 @@ export type Comment = {
 export async function createMeme(
   token: string,
   memeData: FormData
-): Promise<void> {
-  await fetch(`${BASE_URL}/memes`, {
+): Promise<Meme> {
+  const response = await fetch(`${BASE_URL}/memes`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
     },
     body: memeData,
   }).then((res) => checkStatus(res));
+
+  const createdMeme = await response.json();
+  return createdMeme;
 }
